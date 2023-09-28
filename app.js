@@ -21,11 +21,22 @@ app.get('/', (req, res) => {
 app.post('/blog', async (req, res) => {
     try {
         const newBlog = await Blog.create(req.body);
-        res.status(200).type('text/plain').send('Blog created');
+        res.status(200).type('text/plain').send(newBlog);
     } catch (error) {
         res.status(500).json({ error: 'An error occurred while creating the blog.' });
     }
 });
+
+app.get('/blog/:id', async (req, res) => {
+    try {
+        const blog = await Blog.find({
+            _id: req.params.id,
+        });
+        res.status(200).type('text/plain').send(blog);
+    } catch (err) {
+        console.log(err);
+    }
+})
 
 
 app.listen(port, () => {
