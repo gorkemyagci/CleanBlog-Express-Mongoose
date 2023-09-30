@@ -1,38 +1,29 @@
-const Blog = require('../models/blogModel');
+const Blog = require('../models/Blog');
 const fs = require('fs');
 
 exports.getAllBlogs = async (req, res) => {
-    const blogs = await Blog.find({});
-    for (let i = 0; i < blogs.length; i++) {
-        res.write(
-            `
-        <div>
-        <h3>${blogs[i].title}</h3>
-        <p>${blogs[i].description}</p>
-        <img style="width:300px" src="${blogs[i].image}" alt="image" />
-        </div>
-        `
-        );
-    }
-    res.end();
+    const page = req.query.page || 1;
+    const limit = 2;
+    const skip = (page - 1) * limit;
+    const blogs = await Blog.find().sort({ createdAt: -1 }).skip(skip).limit(limit);
+    const count = await Blog.countDocuments();
+    const pages = Math.ceil(count / limit);
+    res.status(200).type('text/plain').send({
+        blogs,
+        pages,
+        page
+    });
 }
 
 exports.createBlog = async (req, res) => {
     try {
-        const uploadDir = __dirname + '/public/uploads/';
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir);
-        }
-        let uplaodedImage = req.files.image;
-        let uploadPath = __dirname + '/public/uploads/' + uplaodedImage.name;
-        uplaodedImage.mv(uploadPath, async () => {
-            await Blog.create({
-                ...req.body,
-                image: '/uploads/' + uplaodedImage.name,
-            })
-        })
+        await Blog.create({
+            title: req.body.title,
+            description: req.body.description,
+            image: req.body.image,
+        });
         res.status(200).type('text/plain').send({
-            ...req.body, image: uplaodedImage.name
+            ...req.body, image: req.files.image.name
         });
         res.end();
     } catch (error) {
