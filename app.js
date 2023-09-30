@@ -67,6 +67,28 @@ app.get('/blog/:id', async (req, res) => {
     }
 })
 
+app.put('/blog/edit/:id', async (req, res) => {
+    try {
+        const blog = await Blog.findByIdAndUpdate(req.params.id, {
+            title: req.body.title,
+            description: req.body.description,
+            image: req.body.image,
+        }, { new: true });
+        res.status(200).type('text/plain').send(blog);
+    } catch (err) {
+        console.log(err);
+    }
+})
+
+app.delete('/blog/delete/:id', async (req, res) => {
+    try {
+        const blog = await Blog.findByIdAndDelete(req.params.id);
+        res.status(200).type('text/plain').send(blog);
+    } catch (err) {
+        console.log(err);
+    }
+})
+
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
